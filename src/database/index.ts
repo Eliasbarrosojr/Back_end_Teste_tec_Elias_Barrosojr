@@ -1,4 +1,4 @@
-import client from './config';
-import startDatabase from './startDataBase';
+import client from "./config";
+import startDatabase from "./startDataBase";
 
 export { client, startDatabase };

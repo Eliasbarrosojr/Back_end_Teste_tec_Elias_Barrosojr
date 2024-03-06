@@ -1,5 +1,5 @@
-import { Client } from 'pg';
-import 'dotenv/config';
+import { Client } from "pg";
+import "dotenv/config";
 
 const config = () => {
     return {
@@ -8,8 +8,8 @@ const config = () => {
         host: process.env.DB_HOST,
         database: process.env.DB,
         port: parseInt(process.env.DB_PORT!),
-    }
-}
+    };
+};
 
 const client: Client = new Client(config());
 
