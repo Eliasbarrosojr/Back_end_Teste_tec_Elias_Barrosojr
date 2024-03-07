@@ -1,33 +1,47 @@
-import { QueryConfig, QueryResult } from "pg";
+import { QueryResult } from "pg";
 import { client } from "../../database";
 import { TUserResponse } from "../../interfaces/user.interface";
 import { userSchemaRes } from "../../schemas/user.schema";
+import IntFilters from "../../interfaces/filters.interface";
 
 const listerUserByDataService = async (
-    id: number
-): Promise<Array<TUserResponse> | TUserResponse> => {
-    const queryString: string = `
-        SELECT
-        *
-        FROM 
-        users
-        WHERE 
-        id = $1;
-        `;
+    filters: IntFilters
+): Promise<TUserResponse | Array<TUserResponse>> => {
+    let queryString = `SELECT * FROM users`;
+    const conditions: string[] = [];
+    const values: Array<string | undefined> = [];
 
-    const queryConfig: QueryConfig = {
-        text: queryString,
-        values: [id],
-    };
+    Object.keys(filters).forEach((key, index) => {
+        if (filters[key] !== undefined) {
+            conditions.push(`${key} = $${index + 1}`);
+            values.push(filters[key]!);
+        }
+    });
+
+    if (conditions.length !== 0) {
+        queryString += ` WHERE ${conditions.join(" AND ")}`;
+
+        const queryConfig = {
+            text: queryString,
+            values: values,
+        };
+
+        const queryResult: QueryResult<TUserResponse> = await client.query(
+            queryConfig
+        );
+
+        const user = userSchemaRes.parse(queryResult.rows[0]);
+
+        return user;
+    }
 
     const queryResult: QueryResult<TUserResponse> = await client.query(
-        queryConfig
+        queryString
     );
 
-    const activeUser = userSchemaRes.parse(queryResult.rows[0]);
-    console.log(activeUser);
+    const listUser = queryResult.rows.map((user) => userSchemaRes.parse(user));
 
-    return activeUser;
+    return listUser;
 };
 
 export default listerUserByDataService;
